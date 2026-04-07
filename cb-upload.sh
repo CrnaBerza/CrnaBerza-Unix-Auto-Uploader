@@ -157,9 +157,32 @@ create_torrent() {
     log_info "═══ KORAK 1: Kreiranje torenta ═══"
     log_info "Izvor: $(basename "$source_path")"
     
-    # Pokreni mktorrent sa vidljivim outputom (-t 2 ograničava threadove)
+    # Izračunaj veličinu i odredi piece size
+    local total_size=$(du -sb "$source_path" 2>/dev/null | cut -f1)
+    local piece_size=18  # 256KB default (2^18)
+    
+    # Veći piece size za veće fajlove (cilj: ~1000-2000 komada)
+    if [ "$total_size" -gt 17179869184 ]; then    # >16GB
+        piece_size=24  # 16MB
+    elif [ "$total_size" -gt 8589934592 ]; then   # >8GB
+        piece_size=23  # 8MB
+    elif [ "$total_size" -gt 4294967296 ]; then   # >4GB
+        piece_size=22  # 4MB
+    elif [ "$total_size" -gt 2147483648 ]; then   # >2GB
+        piece_size=21  # 2MB
+    elif [ "$total_size" -gt 1073741824 ]; then   # >1GB
+        piece_size=20  # 1MB
+    elif [ "$total_size" -gt 536870912 ]; then    # >512MB
+        piece_size=19  # 512KB
+    fi
+    
+    local piece_size_h=$((1 << piece_size))
+    log_info "Veličina: $(numfmt --to=iec $total_size 2>/dev/null || echo "${total_size} bytes"), Piece size: $(numfmt --to=iec $piece_size_h 2>/dev/null || echo "$piece_size_h bytes")"
+    
+    # Pokreni mktorrent sa odgovarajućim piece size-om
     if ! mktorrent \
         -t 2 \
+        -l $piece_size \
         -a "$ANNOUNCE_URL" \
         -p \
         -o "$output_file" \
