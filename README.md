@@ -22,7 +22,8 @@ sudo apt update
 sudo apt install mktorrent ffmpeg mediainfo jq curl bc
 
 # Preuzmi skriptu
-curl -O https://raw.githubusercontent.com/USER/REPO/main/cb-upload.sh
+curl -O https://github.com/CrnaBerza/CrnaBerza-Unix-Auto-Uploader/main/cb-upload.sh
+
 chmod +x cb-upload.sh
 
 # Podesi API ključeve
